@@ -10,23 +10,12 @@ class LocalConfigurationFilterTestCase extends PHPUnit_Framework_TestCase {
 	public function setUp() {
 		Phing::startup();
 
-		$this->reader = $this->getMockBuilder('StringReader')
-			->setConstructorArgs(array(''))
-			->getMock();
-
-		$this->file = $this->getMockBuilder('PhingFile')
+		$this->reader = $this->getMockBuilder('FileReader')
 			->setConstructorArgs(array(realpath(dirname(__FILE__) . '/../Fixtures/DefaultConfiguration.php')))
+			->setMethods(NULL)
 			->getMock();
-
-		$this->file
-			->expects($this->once())
-			->method('getAbsolutePath')
-			->will(
-				$this->returnValue(realpath(dirname(__FILE__) . '/../Fixtures/DefaultConfiguration.php'))
-			);
 
 		$this->filter = new LocalConfigurationFilter($this->reader);
-		$this->filter->setFile($this->file);
 	}
 
 	/**

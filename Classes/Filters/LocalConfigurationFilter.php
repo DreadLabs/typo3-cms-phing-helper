@@ -41,12 +41,6 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 	protected $defaultConfiguration = array();
 
 	/**
-	 *
-	 * @var PhingFile
-	 */
-	protected $file = '';
-
-	/**
 	 * directory where to save modified input file
 	 *
 	 * The default configuration input file gets cleaned up by unresolveable TYPO3
@@ -55,14 +49,6 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 	 * @var string
 	 */
 	protected $cacheDir = '/tmp';
-
-	public function setFile(PhingFile $file) {
-		$this->file = $file;
-	}
-
-	public function getFile() {
-		return $this->file;
-	}
 
 	public function setCacheDir($dir) {
 		$this->cacheDir = $dir;
@@ -85,7 +71,6 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 	public function chain(Reader $reader) {
 		$newFilter = new LocalConfigurationFilter($reader);
 		$newFilter->setProject($this->getProject());
-		$newFilter->setFile($this->getFile());
 		$newFilter->setCacheDir($this->getCacheDir());
 		$newFilter->setInitialized(true);
 
@@ -93,11 +78,17 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 	}
 
 	public function read($len = null) {
-		$this->defineBaseConstants();
-
 		$defaultConfiguration = '';
-		$fileReader = new FileReader($this->file);
-		$fileReader->readInto($defaultConfiguration);
+
+		while (($data = $this->in->read($len)) !== -1) {
+			$defaultConfiguration .= $data;
+		}
+
+		if ('' === $defaultConfiguration) {
+			return -1;
+		}
+
+		$this->defineBaseConstants();
 
 		$this->setDefaultConfiguration($defaultConfiguration);
 
