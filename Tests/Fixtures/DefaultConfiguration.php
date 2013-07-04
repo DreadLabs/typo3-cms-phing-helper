@@ -679,8 +679,7 @@ return array(
 	),
 	'LOG' => array(
 		'writerConfiguration' => array(
-			//\TYPO3\CMS\Core\Log\LogLevel::DEBUG => array(
-			7 => array(
+			\TYPO3\CMS\Core\Log\LogLevel::DEBUG => array(
 				'TYPO3\\CMS\\Core\\Log\\Writer\\FileWriter' => array(
 					'logFile' => 'typo3temp/logs/typo3.log'
 				)
@@ -688,8 +687,7 @@ return array(
 		),
 		'deprecated' => array(
 			'writerConfiguration' => array(
-				//\TYPO3\CMS\Core\Log\LogLevel::WARNING => array(
-				4 => array(
+				\TYPO3\CMS\Core\Log\LogLevel::WARNING => array(
 					'TYPO3\\CMS\\Core\\Log\\Writer\\FileWriter' => array(
 						'logFile' => 'typo3conf/deprecation.log'
 					)

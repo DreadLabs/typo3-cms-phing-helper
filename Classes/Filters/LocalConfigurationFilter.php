@@ -19,9 +19,42 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 
 	protected $outputLine = '# %comment%%newline%%mainKey%.%subKey%=%defaultConfigurationValue%%newline%';
 
+	/**
+	 * replacement pairs for unresolveable expressions
+	 *
+	 * In order to circumvent to include possible large parts of the TYPO3 CMS
+	 * framework, this stack holds a list of replacement pairs which are replaced
+	 * before inclusion of the shipped default configuration file.
+	 *
+	 * @var array
+	 */
+	protected $unresolveableReplacementPairs = array(
+		'\\TYPO3\\CMS\\Core\\Log\\LogLevel::DEBUG' => '7',
+		'\\TYPO3\\CMS\\Core\\Log\\LogLevel::WARNING' => 4,
+	);
+
+	/**
+	 * content of what is known as TYPO3_CONF_VARS
+	 *
+	 * @var array
+	 */
+	protected $defaultConfiguration = array();
+
+	/**
+	 *
+	 * @var PhingFile
+	 */
 	protected $file = '';
 
-	protected $defaultConfiguration = array();
+	/**
+	 * directory where to save modified input file
+	 *
+	 * The default configuration input file gets cleaned up by unresolveable TYPO3
+	 * CMS framework expressions and is cached into this directory.
+	 *
+	 * @var string
+	 */
+	protected $cacheDir = '/tmp';
 
 	public function setFile(PhingFile $file) {
 		$this->file = $file;
@@ -29,6 +62,14 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 
 	public function getFile() {
 		return $this->file;
+	}
+
+	public function setCacheDir($dir) {
+		$this->cacheDir = $dir;
+	}
+
+	public function getCacheDir() {
+		return $this->cacheDir;
 	}
 
 	/**
@@ -45,6 +86,7 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 		$newFilter = new LocalConfigurationFilter($reader);
 		$newFilter->setProject($this->getProject());
 		$newFilter->setFile($this->getFile());
+		$newFilter->setCacheDir($this->getCacheDir());
 		$newFilter->setInitialized(true);
 
 		return $newFilter;
@@ -53,11 +95,11 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 	public function read($len = null) {
 		$this->defineBaseConstants();
 
-		$this->defaultConfiguration = include($this->file->getAbsolutePath());
-
 		$defaultConfiguration = '';
 		$fileReader = new FileReader($this->file);
 		$fileReader->readInto($defaultConfiguration);
+
+		$this->setDefaultConfiguration($defaultConfiguration);
 
 		// first key is useless, empty configuration main keys (GFX, SYS, BE, FE...)
 		list(, $comments) = $this->getDefaultConfigArrayComments($defaultConfiguration);
@@ -82,6 +124,22 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 			// todo: get from param/filter attribute
 			define('TYPO3_version', '6.0.6');
 		}
+	}
+
+	protected function setDefaultConfiguration($rawContent) {
+		$resolvedContent = strtr($rawContent, $this->unresolveableReplacementPairs);
+
+		$cacheFile = tempnam($this->cacheDir, 'tmp');
+
+		$fh = fopen($cacheFile, 'w');
+
+		fwrite($fh, $resolvedContent);
+
+		fclose($fh);
+
+		$this->defaultConfiguration = include($cacheFile);
+
+		unlink($cacheFile);
 	}
 
 	/**

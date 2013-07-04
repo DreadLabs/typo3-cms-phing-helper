@@ -19,7 +19,7 @@ class LocalConfigurationFilterTestCase extends PHPUnit_Framework_TestCase {
 			->getMock();
 
 		$this->file
-			->expects($this->any())
+			->expects($this->once())
 			->method('getAbsolutePath')
 			->will(
 				$this->returnValue(realpath(dirname(__FILE__) . '/../Fixtures/DefaultConfiguration.php'))
