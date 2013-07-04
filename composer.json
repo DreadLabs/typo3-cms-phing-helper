@@ -1,0 +1,19 @@
+{
+    "name": "dreadlabs/typo3-cms-phing-helper",
+    "description": "Phing helpers for TYPO3 CMS deployment",
+    "keywords": ["build", "tool", "task"],
+    "homepage": "http://typo3.van-tomas.de/",
+    "authors": [
+        {
+            "name": "Thomas Juhnke",
+            "email": "tommy@van-tomas.de"
+        }
+    ],
+    "require": {
+        "php": ">=5.2.0"
+    },
+    "autoload": {
+        "classmap": ["classes/"]
+    },
+    "include-path": ["classes"]
+}
