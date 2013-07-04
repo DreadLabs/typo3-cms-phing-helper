@@ -11,8 +11,12 @@
     "require": {
         "php": ">=5.2.0"
     },
-    "autoload": {
-        "classmap": ["classes/"]
+    "require-dev": {
+        "phing/phing": "2.5.*",
+        "phpunit/phpunit": "3.7.*"
     },
-    "include-path": ["classes"]
+    "autoload": {
+        "classmap": ["Classes/"]
+    },
+    "include-path": ["Classes"]
 }
