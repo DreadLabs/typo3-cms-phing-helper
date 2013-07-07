@@ -1,8 +1,33 @@
 <?php
 
+/*
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * This software consists of voluntary contributions made by many individuals
+ * and is licensed under the LGPL. For more information please see
+ * <http://phing.info>.
+ */
+
 include_once 'phing/filters/BaseParamFilterReader.php';
 include_once 'phing/filters/ChainableReader.php';
 
+/**
+ * Transforms the TYPO3 CMS DefaultConfiguration into a Phing property file
+ * 
+ * @author Thomas Juhnke <tommy@van-tomas.de>
+ * @see FilterReader
+ * @package Filters
+ */
 class LocalConfigurationFilter extends BaseParamFilterReader implements ChainableReader {
 
 	/**
@@ -17,6 +42,11 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 	 */
 	protected $commentPattern = '/,[\\t\\s]*\\/\\/(.*)/i';
 
+	/**
+	 * property file output line
+	 *
+	 * @var string
+	 */
 	protected $outputLine = '# %comment%%newline%%mainKey%.%subKey%=%defaultConfigurationValue%%newline%';
 
 	/**
@@ -31,6 +61,9 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 	protected $unresolveableReplacementPairs = array(
 		'\\TYPO3\\CMS\\Core\\Log\\LogLevel::DEBUG' => '7',
 		'\\TYPO3\\CMS\\Core\\Log\\LogLevel::WARNING' => 4,
+		'PHP_EXTENSIONS_DEFAULT' => "'php,php3,php4,php5,php6,phpsh,inc,phtml'",
+		'FILE_DENY_PATTERN_DEFAULT' => "'\\.(php[3-6]?|phpsh|phtml)(\\..*)?$|^\\.htaccess$'",
+		'TYPO3_version' => "''",
 	);
 
 	/**
@@ -50,6 +83,12 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 	 */
 	protected $cacheDir = '/tmp';
 
+	/**
+	 *
+	 * @var string
+	 */
+	protected $typo3Version = NULL;
+
 	public function setCacheDir($dir) {
 		$this->cacheDir = $dir;
 	}
@@ -59,26 +98,56 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 	}
 
 	/**
+	 * sets the TYPO3 version property
+	 *
+	 * This getter also updates the self::unresolveableReplacementPairs stack
+	 *
+	 * @return void
+	 */
+	public function setTYPO3Version($typo3Version) {
+		$this->typo3Version = $typo3Version;
+
+		$this->unresolveableReplacementPairs['TYPO3_version'] = "'" . $typo3Version . "'";
+	}
+
+	/**
+	 *
+	 * @return string
+	 */
+	public function getTYPO3Version() {
+		return $this->typo3Version;
+	}
+
+	/**
 	* Creates a new LocalConfigurationFilter using the passed in
 	* Reader for instantiation.
 	*
-	* @param Reader A Reader object providing the underlying stream.
-	*               Must not be <code>null</code>.
+	* @param Reader A Reader object providing the underlying stream. Must not be <code>null</code>.
 	*
-	* @return Reader A new filter based on this configuration, but filtering
-	*         the specified reader
+	* @return Reader A new filter based on this configuration, but filtering the specified reader
 	*/
 	public function chain(Reader $reader) {
 		$newFilter = new LocalConfigurationFilter($reader);
 		$newFilter->setProject($this->getProject());
 		$newFilter->setCacheDir($this->getCacheDir());
+		$newFilter->setTYPO3Version($this->getTYPO3Version());
 		$newFilter->setInitialized(true);
 
 		return $newFilter;
 	}
 
+	/**
+	 * Reads stream, applies property file formatting and returns resulting stream.
+	 * 
+	 * @return string transformed buffer.
+	 * @throws BuildException if TYPO3version is not set in unresolveableReplacementPairs
+	 */
 	public function read($len = null) {
 		$defaultConfiguration = '';
+
+		if (-1 === version_compare($this->getTYPO3Version(), '0.0.0')) {
+			throw new BuildException('You must pass a TYPO3 version via the corresponding parameter in your build file!');
+		}
 
 		while (($data = $this->in->read($len)) !== -1) {
 			$defaultConfiguration .= $data;
@@ -87,8 +156,6 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 		if ('' === $defaultConfiguration) {
 			return -1;
 		}
-
-		$this->defineBaseConstants();
 
 		$this->setDefaultConfiguration($defaultConfiguration);
 
@@ -100,23 +167,12 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 		return $out;
 	}
 
-	protected function defineBaseConstants() {
-		// from \TYPO3\CMS\Core\Core\SystemEnvironmentBuilder::defineBaseConstants()
-
-		if (FALSE === defined('PHP_EXTENSIONS_DEFAULT')) {
-			define('PHP_EXTENSIONS_DEFAULT', 'php,php3,php4,php5,php6,phpsh,inc,phtml');
-		}
-
-		if (FALSE === defined('FILE_DENY_PATTERN_DEFAULT')) {
-			define('FILE_DENY_PATTERN_DEFAULT', '\\.(php[3-6]?|phpsh|phtml)(\\..*)?$|^\\.htaccess$');
-		}
-
-		if (FALSE === defined('TYPO3_version')) {
-			// todo: get from param/filter attribute
-			define('TYPO3_version', '6.0.6');
-		}
-	}
-
+	/**
+	 * modifies the given raw content by creating a temp file and resolving some TYPO3 CMS constants
+	 *
+	 * @param string $rawContent
+	 * @return void
+	 */
 	protected function setDefaultConfiguration($rawContent) {
 		$resolvedContent = strtr($rawContent, $this->unresolveableReplacementPairs);
 
@@ -180,6 +236,12 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 		return array($mainArray, $commentArray);
 	}
 
+	/**
+	 * creates the property file lines for the given comments array
+	 * 
+	 * @param array $comments
+	 * @return string
+	 */
 	public function createPropertyPathsFromCommentArray($comments) {
 		$out = '';
 
