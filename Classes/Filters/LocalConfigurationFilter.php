@@ -102,6 +102,7 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 	 *
 	 * This getter also updates the self::unresolveableReplacementPairs stack
 	 *
+	 * @param string $typo3Version
 	 * @return void
 	 */
 	public function setTYPO3Version($typo3Version) {
@@ -143,6 +144,11 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 	 * @throws BuildException if TYPO3version is not set in unresolveableReplacementPairs
 	 */
 	public function read($len = null) {
+		if (FALSE === $this->getInitialized()) {
+			$this->initialize();
+			$this->setInitialized(TRUE);
+		}
+
 		$defaultConfiguration = '';
 
 		if (-1 === version_compare($this->getTYPO3Version(), '0.0.0')) {
@@ -165,6 +171,29 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 		$out = $this->createPropertyPathsFromCommentArray($comments);
 
 		return $out;
+	}
+
+	/**
+	 * Initializes any parameters
+	 *
+	 * This method is only called when this filter is used through a <filterreader> tag in build file.
+	 *
+	 * @return void
+	 */
+	private function initialize() {
+		$params = $this->getParameters();
+
+		if ($params) {
+			foreach ($params as $param) {
+				$setter = 'set' . str_replace(' ', '', ucwords(str_replace('-', ' ', $param->getName())));
+				if (FALSE === method_exists($this, $setter)) {
+					$msg = sprintf('Unknown parameter "%s" for LocalConfigurationFilter!', $param->getName());
+					throw new BuildException($msg);
+				}
+
+				call_user_func(array($this, $setter), $param->getValue());
+			}
+		}
 	}
 
 	/**

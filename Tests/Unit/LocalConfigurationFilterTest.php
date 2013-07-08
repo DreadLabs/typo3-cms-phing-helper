@@ -23,6 +23,7 @@ class LocalConfigurationFilterTestCase extends PHPUnit_Framework_TestCase {
 	 * @test
 	 */
 	public function defaultConfigurationArrayIsTransformedToPhingPropertyFormat() {
+		$this->filter->setInitialized(TRUE);
 		$this->filter->setTYPO3Version('6.0.6');
 		$output = $this->filter->read();
 
@@ -34,6 +35,7 @@ class LocalConfigurationFilterTestCase extends PHPUnit_Framework_TestCase {
 	 * @test
 	 */
 	public function phingPropertyContainsTheDefaultConfigurationValue() {
+		$this->filter->setInitialized(TRUE);
 		$this->filter->setTYPO3Version('6.0.6');
 		$output = $this->filter->read();
 
@@ -56,9 +58,50 @@ class LocalConfigurationFilterTestCase extends PHPUnit_Framework_TestCase {
 	 */
 	public function typo3VersionParameterIsAvailableInTheGeneratedPropertyFile() {
 		$this->filter->setTYPO3Version('6.0.6');
+		$this->filter->setInitialized(TRUE);
 		$output = $this->filter->read();
 
 		$this->assertContains('HTTP.userAgent=TYPO3/6.0.6', $output);
+	}
+
+	/**
+	 *
+	 * @test
+	 */
+	public function filterInitializesItself() {
+		$parameters = array();
+
+		$param = new Parameter();
+		$param->setName('TYPO3Version');
+		$param->setValue('99.99.99');
+
+		array_push($parameters, $param);
+
+		$this->filter->setParameters($parameters);
+
+		$output = $this->filter->read();
+
+		$this->assertContains('HTTP.userAgent=TYPO3/99.99.99', $output);
+	}
+
+	/**
+	 *
+	 * @test
+	 */
+	public function filterInitializationAlsoRespectsCaseInsensitivity() {
+		$parameters = array();
+
+		$param = new Parameter();
+		$param->setName('typo3version');
+		$param->setValue('1.2.3');
+
+		array_push($parameters, $param);
+
+		$this->filter->setParameters($parameters);
+
+		$output = $this->filter->read();
+
+		$this->assertContains('HTTP.userAgent=TYPO3/1.2.3', $output);
 	}
 }
 ?>
