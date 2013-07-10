@@ -69,7 +69,6 @@ class GenerateLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase {
 	 * @expectedExceptionMessage You must specify the file attribute!
 	 */
 	public function notSettingTheFileAttributeThrowsAnException() {
-		$this->task->init();
 		$this->task->main();
 	}
 
@@ -92,7 +91,6 @@ class GenerateLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase {
 		$this->task->setFile($this->file);
 		$this->task->addFileWriter($fileWriter);
 
-		$this->task->init();
 		$this->task->main();
 	}
 }

@@ -25,6 +25,12 @@ include_once 'phing/Task.php';
  *
  * Usage in a phing build file
  *
+ * 1. Import via TaskdefTask:
+ *
+ * <taskdef classname="Tasks.GenerateLocalConfigurationTask" name="generatelocalconfiguration" />
+ *
+ * 2. Call task:
+ *
  * <generatelocalconfiguration file="path/to/typo3conf/LocalConfiguration.php" propertyprefix="LocalConfiguration" />
  * 
  * @author Thomas Juhnke <tommy@van-tomas.de>
@@ -110,12 +116,10 @@ class GenerateLocalConfigurationTask extends Task {
 	}
 
 	/**
-	 * initializes the task
 	 *
 	 * @return void
-	 * @throws BuildException
 	 */
-	public function init() {
+	public function main() {
 		if (NULL === $this->file) {
 			throw new BuildException('You must specify the file attribute!');
 		}
@@ -123,13 +127,7 @@ class GenerateLocalConfigurationTask extends Task {
 		if (NULL === $this->fileWriter) {
 			$this->addFileWriter();
 		}
-	}
 
-	/**
-	 *
-	 * @return void
-	 */
-	public function main() {
 		$this->transformPropertiesToArray();
 
 		$this->writeLocalConfigurationArray();
