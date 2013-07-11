@@ -97,10 +97,6 @@ class MergeLocalConfigurationTask extends Task {
 			throw new BuildException('You must specify the remote generated file!');
 		}
 
-		if (NULL === $this->fileWriter) {
-			$this->addFileWriter();
-		}
-
 		$localConfiguration = include($this->localFile->getAbsolutePath());
 		$remoteConfiguration = include($this->remoteFile->getAbsolutePath());
 
@@ -108,6 +104,10 @@ class MergeLocalConfigurationTask extends Task {
 
 		$configuration = new ConfigurationUtility($mergedConfiguration);
 		$phpCode = $configuration->getLocalConfigurationArray();
+
+		if (NULL === $this->fileWriter) {
+			$this->addFileWriter();
+		}
 
 		$this->fileWriter->write($phpCode);
 		$this->fileWriter->close();
