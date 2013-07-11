@@ -80,7 +80,7 @@ class ArrayUtility {
 				unset($arr0[$key]);
 				continue;
 			}
-			if (is_array($arr0[$key])) {
+			if (isset($arr0[$key]) && is_array($arr0[$key])) {
 				if (is_array($arr1[$key])) {
 					$arr0[$key] = self::array_merge_recursive_overrule($arr0[$key], $arr1[$key], $notAddKeys, $includeEmptyValues, $enableUnsetFeature);
 				}

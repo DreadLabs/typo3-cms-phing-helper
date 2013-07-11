@@ -20,6 +20,7 @@
 
 include_once 'phing/Task.php';
 include_once 'Utility/ArrayUtility.php';
+include_once 'Utility/ConfigurationUtility.php';
 
 /**
  * Writes a the TYPO3 CMS LocalConfiguration.php file
@@ -38,14 +39,6 @@ include_once 'Utility/ArrayUtility.php';
  * @package Tasks
  */
 class GenerateLocalConfigurationTask extends Task {
-
-	/**
-	 *
-	 * @see typo3/sysext/core/Classes/Configuration/ConfigurationManager.php::writeLocalConfiguration()
-	 *
-	 * @var string
-	 */
-	const OUTPUT_TEMPLATE = '<?php%newline%return %localConfigurationArray%;%newline%?>';
 
 	/**
 	 * The target file to write the LocalConfiguration into
@@ -180,20 +173,11 @@ class GenerateLocalConfigurationTask extends Task {
 	}
 
 	protected function writeLocalConfigurationArray() {
-		$phpCode = strtr(self::OUTPUT_TEMPLATE, array(
-			'%newline%' => chr(10),
-			'%localConfigurationArray%' => $this->getExportedLocalConfigurationArray(),
-		));
+		$configuration = new ConfigurationUtility($this->localConfiguration);
+		$phpCode = $configuration->getLocalConfigurationArray();
 
 		$this->fileWriter->write($phpCode);
 		$this->fileWriter->close();
-	}
-
-	protected function getExportedLocalConfigurationArray() {
-		$sortedConfiguration = ArrayUtility::sortByKeyRecursive($this->localConfiguration);
-		$renumberedArray = ArrayUtility::renumberKeysToAvoidLeapsIfKeysAreAllNumeric($sortedConfiguration);
-
-		return ArrayUtility::arrayExport($renumberedArray);
 	}
 }
 ?>
