@@ -1,5 +1,116 @@
 <?php
+
+/**
+ * NOTE: all methods within this utility class come from the TYPO3 Project. I'm
+ * no license specialist so I included both - the Phing and TYPO3 Project Copyright
+ * notices. Hopefully I'm not offending someones rights with this and I appreciate
+ * any help solving this problem.
+ */
+
+/*
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * This software consists of voluntary contributions made by many individuals
+ * and is licensed under the LGPL. For more information please see
+ * <http://phing.info>.
+ */
+
+/***************************************************************
+ * Copyright notice
+ *
+ * (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
+ * (c) 2011 Susanne Moog <typo3@susanne-moog.de>
+ * All rights reserved
+ *
+ * This script is part of the TYPO3 project. The TYPO3 project is
+ * free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html.
+ * A copy is found in the textfile GPL.txt and important notices to the license
+ * from the author is found in LICENSE.txt distributed with these scripts.
+ *
+ *
+ * This script is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
+
+/**
+ * Array Utilities
+ *
+ */
 class ArrayUtility {
+
+	/**
+	 * Merges two arrays recursively and "binary safe" (integer keys are
+	 * overridden as well), overruling similar values in the first array
+	 * ($arr0) with the values of the second array ($arr1)
+	 * In case of identical keys, ie. keeping the values of the second.
+	 *
+	 * @author Kasper Skårhøj <kasperYYYY@typo3.com>
+	 * @see typo3/sysext/core/Classes/Utility/GeneralUtility.php::array_merge_recursive_overrule
+	 *
+	 * @param array $arr0 First array
+	 * @param array $arr1 Second array, overruling the first array
+	 * @param boolean $notAddKeys If set, keys that are NOT found in $arr0 (first array) will not be set. Thus only existing value can/will be overruled from second array.
+	 * @param boolean $includeEmptyValues If set, values from $arr1 will overrule if they are empty or zero. Default: TRUE
+	 * @param boolean $enableUnsetFeature If set, special values "__UNSET" can be used in the second array in order to unset array keys in the resulting array.
+	 * @return array Resulting array where $arr1 values has overruled $arr0 values
+	 */
+	static public function array_merge_recursive_overrule(array $arr0, array $arr1, $notAddKeys = FALSE, $includeEmptyValues = TRUE, $enableUnsetFeature = TRUE) {
+		foreach ($arr1 as $key => $val) {
+			if ($enableUnsetFeature && $val === '__UNSET') {
+				unset($arr0[$key]);
+				continue;
+			}
+			if (is_array($arr0[$key])) {
+				if (is_array($arr1[$key])) {
+					$arr0[$key] = self::array_merge_recursive_overrule($arr0[$key], $arr1[$key], $notAddKeys, $includeEmptyValues, $enableUnsetFeature);
+				}
+			} elseif (
+								(!$notAddKeys || isset($arr0[$key])) &&
+								($includeEmptyValues || $val)
+			) {
+				$arr0[$key] = $val;
+			}
+		}
+		reset($arr0);
+		return $arr0;
+	}
+
+	/**
+	 * Sorts an array recursively by key
+	 *
+	 * @param $array Array to sort recursively by key
+	 * @return array Sorted array
+	 */
+	static public function sortByKeyRecursive(array $array) {
+		ksort($array);
+		foreach ($array as $key => $value) {
+			if (is_array($value) && !empty($value)) {
+				$array[$key] = self::sortByKeyRecursive($value);
+			}
+		}
+
+		return $array;
+	}
 
 	/**
 	 * Renumber the keys of an array to avoid leaps is keys are all numeric.
@@ -29,7 +140,7 @@ class ArrayUtility {
 	 * @param integer $level Internal level used for recursion, do *not* set from outside!
 	 * @return array
 	 */
-	public static function renumberKeysToAvoidLeapsIfKeysAreAllNumeric(array $array = array(), $level = 0) {
+	static public function renumberKeysToAvoidLeapsIfKeysAreAllNumeric(array $array = array(), $level = 0) {
 		$level++;
 		$allKeysAreNumeric = TRUE;
 		foreach (array_keys($array) as $key) {
@@ -65,7 +176,7 @@ class ArrayUtility {
 	 * @return string String representation of array
 	 * @throws \RuntimeException
 	 */
-	public static function arrayExport(array $array = array(), $level = 0) {
+	static public function arrayExport(array $array = array(), $level = 0) {
 		$lines = 'array(' . chr(10);
 		$level++;
 		$writeKeyIndex = FALSE;

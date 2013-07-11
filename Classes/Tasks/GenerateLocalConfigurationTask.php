@@ -190,7 +190,8 @@ class GenerateLocalConfigurationTask extends Task {
 	}
 
 	protected function getExportedLocalConfigurationArray() {
-		$renumberedArray = ArrayUtility::renumberKeysToAvoidLeapsIfKeysAreAllNumeric($this->localConfiguration);
+		$sortedConfiguration = ArrayUtility::sortByKeyRecursive($this->localConfiguration);
+		$renumberedArray = ArrayUtility::renumberKeysToAvoidLeapsIfKeysAreAllNumeric($sortedConfiguration);
 
 		return ArrayUtility::arrayExport($renumberedArray);
 	}
