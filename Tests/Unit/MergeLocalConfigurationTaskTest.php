@@ -19,6 +19,12 @@ class MergeLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase {
 	 */
 	protected $remoteFile = NULL;
 
+	/**
+	 *
+	 * @var FileWriter
+	 */
+	protected $fileWriter = NULL;
+
 	public function setUp() {
 		Phing::startup();
 
@@ -30,6 +36,17 @@ class MergeLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase {
 		$this->remoteFile = $this->getMockBuilder('PhingFile')
 			->setConstructorArgs(array(dirname(__FILE__) . '/../Fixtures/RemoteLocalConfiguration.php'))
 			->setMethods(NULL)
+			->getMock();
+
+		$_tempTargetFile = tempnam('/tmp', 'tmp');
+
+		$tempTargetFile = $this->getMockBuilder('PhingFile')
+			->setConstructorArgs(array($_tempTargetFile))
+			->setMethods(NULL)
+			->getMock();
+
+		$this->fileWriter = $this->getMockBuilder('FileWriter')
+			->setConstructorArgs(array($tempTargetFile))
 			->getMock();
 
 		$this->task = new MergeLocalConfigurationTask();
@@ -62,23 +79,40 @@ class MergeLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase {
 	 * @test
 	 */
 	public function fileWriterIsUsedToWriteTheGeneratedPhpCode() {
-		$_tempTargetFile = tempnam('/tmp', 'tmp');
-
-		$tempTargetFile = $this->getMockBuilder('PhingFile')
-			->setConstructorArgs(array($_tempTargetFile))
-			->setMethods(NULL)
-			->getMock();
-
-		$fileWriter = $this->getMockBuilder('FileWriter')
-			->setConstructorArgs(array($tempTargetFile))
-			->getMock();
-
 		// extension configuration array added in remote configuration
 		$testString1 = 'extConf';
-		// InstallTool password is only set in remote configuration
+		// InstallTool password is only set in remote configuration (is overriden as it is not set in local configuration)
 		$testString2 = '2ccbdfbea4716a57da75f4c8e8d651ac';
 
-		$fileWriter->expects($this->once())
+		$this->fileWriter->expects($this->once())
+			->method('write')
+			->with(
+				$this->logicalAnd(
+					$this->stringContains($testString1),
+					$this->logicalNot(
+						$this->stringContains($testString2)
+					)
+				)
+			);
+
+		$this->task->setLocalFile($this->localFile);
+		$this->task->setRemoteFile($this->remoteFile);
+		$this->task->addFileWriter($this->fileWriter);
+
+		$this->task->main();
+	}
+
+	/**
+	 *
+	 * @test
+	 */
+	public function mergeBehaviorChangesIfIncludeEmptyValuesIsFalse() {
+		$testString1 = 'extConf';
+
+		// install tool is empty in local configuration, leave remote setting intact...
+		$testString2 = "'installToolPassword' => '2ccbdfbea4716a57da75f4c8e8d651ac',";
+
+		$this->fileWriter->expects($this->once())
 			->method('write')
 			->with(
 				$this->logicalAnd(
@@ -89,7 +123,8 @@ class MergeLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase {
 
 		$this->task->setLocalFile($this->localFile);
 		$this->task->setRemoteFile($this->remoteFile);
-		$this->task->addFileWriter($fileWriter);
+		$this->task->setIncludeEmptyValues(FALSE);
+		$this->task->addFileWriter($this->fileWriter);
 
 		$this->task->main();
 	}
