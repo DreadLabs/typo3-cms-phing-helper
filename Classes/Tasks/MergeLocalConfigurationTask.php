@@ -138,8 +138,8 @@ class MergeLocalConfigurationTask extends Task {
 			throw new BuildException('You must specify the remote generated file!');
 		}
 
-		$remoteConfiguration = include($this->remoteFile->getAbsolutePath());
-		$localConfiguration = include($this->localFile->getAbsolutePath());
+		$remoteConfiguration = (array) include($this->remoteFile->getAbsolutePath());
+		$localConfiguration = (array) include($this->localFile->getAbsolutePath());
 
 		$mergedConfiguration = ArrayUtility::array_merge_recursive_overrule($remoteConfiguration, $localConfiguration, FALSE, $this->includeEmptyValues);
 
