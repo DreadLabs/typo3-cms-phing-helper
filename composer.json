@@ -9,7 +9,8 @@
 		}
 	],
 	"require": {
-		"php": ">=5.2.0"
+		"php": ">=5.2.0",
+		"phpseclib/phpseclib": "0.3.5"
 	},
 	"require-dev": {
 		"phing/phing": "2.5.*",
