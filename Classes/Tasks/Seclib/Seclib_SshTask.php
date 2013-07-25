@@ -1,5 +1,145 @@
 <?php
-class Seclib_SshTask extends SshTask {
+class Seclib_SshTask extends Task {
+
+	private $host = "";
+
+	private $port = 22;
+
+	private $methods = null;
+
+	private $username = "";
+
+	private $password = "";
+
+	private $command = "";
+
+	private $pubkeyfile = '';
+
+	private $privkeyfile = '';
+
+	private $privkeyfilepassphrase = '';
+
+	/**
+	 * The name of the property to capture (any) output of the command
+	 * @var string
+	 */
+	private $property = "";
+
+	/**
+	 * Whether to display the output of the command
+	 * @var boolean
+	 */
+	private $display = true;
+
+	public function setHost($host) {
+		$this->host = $host;
+	}
+
+	public function getHost() {
+		return $this->host;
+	}
+
+	public function setPort($port) {
+		$this->port = $port;
+	}
+
+	public function getPort() {
+		return $this->port;
+	}
+
+	public function setUsername($username) {
+		$this->username = $username;
+	}
+
+	public function getUsername() {
+		return $this->username;
+	}
+
+	public function setPassword($password) {
+		$this->password = $password;
+	}
+
+	public function getPassword() {
+		return $this->password;
+	}
+
+	/**
+	 * Sets the public key file of the user to scp
+	 */
+	public function setPubkeyfile($pubkeyfile) {
+		$this->pubkeyfile = $pubkeyfile;
+	}
+
+	/**
+	 * Returns the pubkeyfile
+	 */
+	public function getPubkeyfile() {
+		return $this->pubkeyfile;
+	}
+
+	/**
+	 * Sets the private key file of the user to scp
+	 */
+	public function setPrivkeyfile($privkeyfile) {
+		$this->privkeyfile = $privkeyfile;
+	}
+
+	/**
+	 * Returns the private keyfile
+	 */
+	public function getPrivkeyfile() {
+		return $this->privkeyfile;
+	}
+
+	/**
+	 * Sets the private key file passphrase of the user to scp
+	 */
+	public function setPrivkeyfilepassphrase($privkeyfilepassphrase) {
+		$this->privkeyfilepassphrase = $privkeyfilepassphrase;
+	}
+
+	/**
+	 * Returns the private keyfile passphrase
+	 */
+	public function getPrivkeyfilepassphrase($privkeyfilepassphrase) {
+		return $this->privkeyfilepassphrase;
+	}
+
+	public function setCommand($command) {
+		$this->command = $command;
+	}
+
+	public function getCommand() {
+		return $this->command;
+	}
+
+	/**
+	 * Sets the name of the property to capture (any) output of the command
+	 * @param string $property
+	 */
+	public function setProperty($property) {
+		$this->property = $property;
+	}
+
+	/**
+	 * Sets whether to display the output of the command
+	 * @param boolean $display
+	 */
+	public function setDisplay($display) {
+		$this->display = (boolean) $display;
+	}
+
+	/**
+	 * Creates an Ssh2MethodParam object. Handles the <sshconfig /> nested tag
+	 * @return Ssh2MethodParam
+	 */
+	public function createSshconfig() {
+		$this->methods = new Ssh2MethodParam();
+		return $this->methods;
+	}
+
+	public function init() {
+	}
 
 	public function main() {
 		$p = $this->getProject();
@@ -13,7 +153,7 @@ class Seclib_SshTask extends SshTask {
 		$methods = !empty($this->methods) ? $this->methods->toArray($p) : array();
 // 		$this->connection = ssh2_connect($this->host, $this->port, $methods);
 		// @todo: methods
-		$this->connection = new Net_SSH2($this->host, $this->port);
+		$this->connection = new Net_SSH2($this->host $this->port);
 // 		if (!$this->connection) {
 // 			throw new BuildException("Could not establish connection to " . $this->host . ":" . $this->port . "!");
 // 		}

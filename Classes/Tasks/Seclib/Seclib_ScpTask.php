@@ -1,5 +1,249 @@
 <?php
-class Seclib_ScpTask extends ScpTask {
+class Seclib_ScpTask extends Task {
+
+	protected $file = "";
+
+	protected $filesets = array(); // all fileset objects assigned to this task
+
+	protected $todir = "";
+
+	protected $mode = null;
+
+	protected $host = "";
+
+	protected $port = 22;
+
+	protected $methods = null;
+
+	protected $username = "";
+
+	protected $password = "";
+
+	protected $autocreate = true;
+
+	protected $fetch = false;
+
+	protected $localEndpoint = "";
+
+	protected $remoteEndpoint = "";
+
+	protected $pubkeyfile = '';
+
+	protected $privkeyfile = '';
+
+	protected $privkeyfilepassphrase = '';
+
+	protected $connection = null;
+
+	protected $sftp = null;
+
+	protected $count = 0;
+
+	protected $logLevel = Project::MSG_VERBOSE;
+
+	/**
+	 * Sets the remote host
+	 */
+	public function setHost($h) {
+		$this->host = $h;
+	}
+
+	/**
+	 * Returns the remote host
+	 */
+	public function getHost() {
+		return $this->host;
+	}
+
+	/**
+	 * Sets the remote host port
+	 */
+	public function setPort($p) {
+		$this->port = $p;
+	}
+
+	/**
+	 * Returns the remote host port
+	 */
+	public function getPort() {
+		return $this->port;
+	}
+
+	/**
+	 * Sets the mode value
+	 */
+	public function setMode($value) {
+		$this->mode = $value;
+	}
+
+	/**
+	 * Returns the mode value
+	 */
+	public function getMode() {
+		return $this->mode;
+	}
+
+	/**
+	 * Sets the username of the user to scp
+	 */
+	public function setUsername($username) {
+		$this->username = $username;
+	}
+
+	/**
+	 * Returns the username
+	 */
+	public function getUsername() {
+		return $this->username;
+	}
+
+	/**
+	 * Sets the password of the user to scp
+	 */
+	public function setPassword($password) {
+		$this->password = $password;
+	}
+
+	/**
+	 * Returns the password
+	 */
+	public function getPassword() {
+		return $this->password;
+	}
+
+	/**
+	 * Sets the public key file of the user to scp
+	 */
+	public function setPubkeyfile($pubkeyfile) {
+		$this->pubkeyfile = $pubkeyfile;
+	}
+
+	/**
+	 * Returns the pubkeyfile
+	 */
+	public function getPubkeyfile() {
+		return $this->pubkeyfile;
+	}
+
+	/**
+	 * Sets the private key file of the user to scp
+	 */
+	public function setPrivkeyfile($privkeyfile) {
+		$this->privkeyfile = $privkeyfile;
+	}
+
+	/**
+	 * Returns the private keyfile
+	 */
+	public function getPrivkeyfile() {
+		return $this->privkeyfile;
+	}
+
+	/**
+	 * Sets the private key file passphrase of the user to scp
+	 */
+	public function setPrivkeyfilepassphrase($privkeyfilepassphrase) {
+		$this->privkeyfilepassphrase = $privkeyfilepassphrase;
+	}
+
+	/**
+	 * Returns the private keyfile passphrase
+	 */
+	public function getPrivkeyfilepassphrase($privkeyfilepassphrase) {
+		return $this->privkeyfilepassphrase;
+	}
+
+	/**
+	 * Sets whether to autocreate remote directories
+	 */
+	public function setAutocreate($autocreate) {
+		$this->autocreate = (bool) $autocreate;
+	}
+
+	/**
+	 * Returns whether to autocreate remote directories
+	 */
+	public function getAutocreate() {
+		return $this->autocreate;
+	}
+
+	/**
+	 * Set destination directory
+	 */
+	public function setTodir($todir) {
+		$this->todir = $todir;
+	}
+
+	/**
+	 * Returns the destination directory
+	 */
+	public function getTodir() {
+		return $this->todir;
+	}
+
+	/**
+	 * Sets local filename
+	 */
+	public function setFile($file) {
+		$this->file = $file;
+	}
+
+	/**
+	 * Returns local filename
+	 */
+	public function getFile() {
+		return $this->file;
+	}
+
+	/**
+	 * Sets whether to send (default) or fetch files
+	 */
+	public function setFetch($fetch) {
+		$this->fetch = (bool) $fetch;
+	}
+
+	/**
+	 * Returns whether to send (default) or fetch files
+	 */
+	public function getFetch() {
+		return $this->fetch;
+	}
+
+	/**
+	 * Nested creator, creates a FileSet for this task
+	 *
+	 * @return FileSet The created fileset object
+	 */
+	public function createFileSet() {
+		$num = array_push($this->filesets, new FileSet());
+		return $this->filesets[$num-1];
+	}
+
+	/**
+	 * Creates an Ssh2MethodParam object. Handles the <sshconfig /> nested tag
+	 * @return Ssh2MethodParam
+	 */
+	public function createSshconfig() {
+		$this->methods = new Ssh2MethodParam();
+		return $this->methods;
+	}
+
+	/**
+	 * Set level of log messages generated (default = verbose)
+	 * @param string $level
+	 */
+	public function setLevel($level) {
+		switch ($level) {
+			case "error": $this->logLevel = Project::MSG_ERR; break;
+			case "warning": $this->logLevel = Project::MSG_WARN; break;
+			case "info": $this->logLevel = Project::MSG_INFO; break;
+			case "verbose": $this->logLevel = Project::MSG_VERBOSE; break;
+			case "debug": $this->logLevel = Project::MSG_DEBUG; break;
+		}
+	}
+
+	public function init() {
+	}
 
 	public function main() {
 		$p = $this->getProject();
