@@ -176,7 +176,7 @@ class Seclib_SshTask extends Task {
 
 // 		$stream = ssh2_exec($this->connection, $this->command);
 		$stream = $this->connection->exec($this->command);
-		if (!$stream) {
+		if (false === $stream) {
 			throw new BuildException("Could not execute command!");
 		}
 
