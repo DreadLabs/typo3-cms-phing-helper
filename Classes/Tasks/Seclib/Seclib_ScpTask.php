@@ -320,6 +320,8 @@ class Seclib_ScpTask extends Task {
 	protected function copyFile($local, $remote) {
 		$path = rtrim($this->todir, "/") . "/";
 
+		$scp = new Net_SCP($this->connection);
+
 		if ($this->fetch) {
 			$localEndpoint = $path . $remote;
 			$remoteEndpoint = $local;
@@ -327,7 +329,6 @@ class Seclib_ScpTask extends Task {
 			$this->log('Will fetch ' . $remoteEndpoint . ' to ' . $localEndpoint, $this->logLevel);
 
 // 			$ret = @ssh2_scp_recv($this->connection, $remoteEndpoint, $localEndpoint);
-			$scp = new Net_SCP($this->connection);
 			$ret = $scp->get($remoteEndpoint, $localEndpoint);
 
 			if ($ret === false) {

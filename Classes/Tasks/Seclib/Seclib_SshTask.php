@@ -153,7 +153,7 @@ class Seclib_SshTask extends Task {
 		$methods = !empty($this->methods) ? $this->methods->toArray($p) : array();
 // 		$this->connection = ssh2_connect($this->host, $this->port, $methods);
 		// @todo: methods
-		$this->connection = new Net_SSH2($this->host $this->port);
+		$this->connection = new Net_SSH2($this->host, $this->port);
 // 		if (!$this->connection) {
 // 			throw new BuildException("Could not establish connection to " . $this->host . ":" . $this->port . "!");
 // 		}
