@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="typo3-cms-phing-helper.TaskDefinitions">
+
+	<taskdef
+		classname="Tasks.ExtensionVersionAvailableTask"
+		name="extensionversionavailable" />
+
+	<taskdef
+		classname="Tasks.GenerateLocalConfigurationTask"
+		name="generatelocalconfiguration" />
+
+	<taskdef
+		classname="Tasks.MergeLocalConfigurationTask"
+		name="mergelocalconfiguration" />
+</project>
