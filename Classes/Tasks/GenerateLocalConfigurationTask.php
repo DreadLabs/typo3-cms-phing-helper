@@ -34,150 +34,161 @@ include_once 'Utility/ConfigurationUtility.php';
  * 2. Call task:
  *
  * <generatelocalconfiguration file="path/to/typo3conf/LocalConfiguration.php" propertyprefix="LocalConfiguration" />
- * 
+ *
  * @author Thomas Juhnke <tommy@van-tomas.de>
  * @package Tasks
  */
-class GenerateLocalConfigurationTask extends Task {
+class GenerateLocalConfigurationTask extends Task
+{
 
-	/**
-	 * The target file to write the LocalConfiguration into
-	 *
-	 * @var PhingFile
-	 */
-	protected $file = NULL;
+    /**
+     * The target file to write the LocalConfiguration into
+     *
+     * @var PhingFile
+     */
+    protected $file = NULL;
 
-	/**
-	 * Prefix for LocalConfiguration properties loaded with PropertyTask
-	 *
-	 * @var string
-	 */
-	protected $propertyPrefix = 'LocalConfiguration';
+    /**
+     * Prefix for LocalConfiguration properties loaded with PropertyTask
+     *
+     * @var string
+     */
+    protected $propertyPrefix = 'LocalConfiguration';
 
-	/**
-	 *
-	 * @var array
-	 */
-	private $localConfiguration = array();
+    /**
+     *
+     * @var array
+     */
+    private $localConfiguration = array();
 
-	/**
-	 *
-	 * @var FileWriter
-	 */
-	private $fileWriter = NULL;
+    /**
+     *
+     * @var FileWriter
+     */
+    private $fileWriter = NULL;
 
-	/**
-	 * sets the target file to write LocalConfiguration into
-	 *
-	 * @param PhingFile $file
-	 * @return void
-	 */
-	public function setFile(PhingFile $file) {
-		$this->file = $file;
-	}
+    /**
+     * sets the target file to write LocalConfiguration into
+     *
+     * @param PhingFile $file
+     * @return void
+     */
+    public function setFile(PhingFile $file)
+    {
+        $this->file = $file;
+    }
 
-	/**
-	 *
-	 * @return PhingFile
-	 */
-	public function getFile() {
-		return $this->file;
-	}
+    /**
+     *
+     * @return PhingFile
+     */
+    public function getFile()
+    {
+        return $this->file;
+    }
 
-	/**
-	 *
-	 * @param string $file
-	 * @return void
-	 */
-	public function setPropertyPrefix($propertyPrefix) {
-		$this->propertyPrefix = $propertyPrefix;
-	}
+    /**
+     *
+     * @param string $file
+     * @return void
+     */
+    public function setPropertyPrefix($propertyPrefix)
+    {
+        $this->propertyPrefix = $propertyPrefix;
+    }
 
-	/**
-	 *
-	 * @return string
-	 */
-	public function getPropertyPrefix() {
-		return $this->propertyPrefix;
-	}
+    /**
+     *
+     * @return string
+     */
+    public function getPropertyPrefix()
+    {
+        return $this->propertyPrefix;
+    }
 
-	public function addFileWriter(FileWriter $fileWriter = NULL) {
-		if (NULL === $fileWriter) {
-			$fileWriter = new FileWriter($this->file);
-		}
+    public function addFileWriter(FileWriter $fileWriter = NULL)
+    {
+        if (NULL === $fileWriter) {
+            $fileWriter = new FileWriter($this->file);
+        }
 
-		$this->fileWriter = $fileWriter;
-	}
+        $this->fileWriter = $fileWriter;
+    }
 
-	/**
-	 *
-	 * @return void
-	 */
-	public function main() {
-		if (NULL === $this->file) {
-			throw new BuildException('You must specify the file attribute!');
-		}
+    /**
+     *
+     * @return void
+     */
+    public function main()
+    {
+        if (NULL === $this->file) {
+            throw new BuildException('You must specify the file attribute!');
+        }
 
-		if (NULL === $this->fileWriter) {
-			$this->addFileWriter();
-		}
+        if (NULL === $this->fileWriter) {
+            $this->addFileWriter();
+        }
 
-		$this->transformPropertiesToArray();
+        $this->transformPropertiesToArray();
 
-		$this->writeLocalConfigurationArray();
-	}
+        $this->writeLocalConfigurationArray();
+    }
 
-	/**
-	 * transforms the flat property list into a local configuration array
-	 *
-	 * Example
-	 *
-	 * Given
-	 * LocalConfiguration.DB.database=my_database_name
-	 *
-	 * Result
-	 * $this->localConfiguration = array(
-	 * 	'DB' => array(
-	 * 		'database' => 'my_database_name'
-	 * 	)
-	 * );
-	 *
-	 * @return void
-	 */
-	protected function transformPropertiesToArray() {
-		$properties = $this->project->getProperties();
+    /**
+     * transforms the flat property list into a local configuration array
+     *
+     * Example
+     *
+     * Given
+     * LocalConfiguration.DB.database=my_database_name
+     *
+     * Result
+     * $this->localConfiguration = array(
+     *     'DB' => array(
+     *         'database' => 'my_database_name'
+     *     )
+     * );
+     *
+     * @return void
+     */
+    protected function transformPropertiesToArray()
+    {
+        $properties = $this->project->getProperties();
 
-		foreach ($properties as $propertyName => $propertyValue) {
-			if (0 !== strpos($propertyName, $this->propertyPrefix . '.')) {
-				continue;
-			}
+        foreach ($properties as $propertyName => $propertyValue) {
+            if (0 !== strpos($propertyName, $this->propertyPrefix . '.')) {
+                continue;
+            }
 
-			list(, $mainKey, $subKey) = $this->splitPropertyName($propertyName);
+            list(, $mainKey, $subKey) = $this->splitPropertyName($propertyName);
 
-			$this->addLocalConfigurationValue($mainKey, $subKey, $propertyValue);
-		}
-	}
+            $this->addLocalConfigurationValue($mainKey, $subKey, $propertyValue);
+        }
+    }
 
-	protected function splitPropertyName($propertyName) {
-		$propertyParts = explode('.', $propertyName, 3);
+    protected function splitPropertyName($propertyName)
+    {
+        $propertyParts = explode('.', $propertyName, 3);
 
-		return $propertyParts;
-	}
+        return $propertyParts;
+    }
 
-	protected function addLocalConfigurationValue($mainKey, $subKey, $propertyValue) {
-		if (FALSE === isset($this->localConfiguration[$mainKey])) {
-			$this->localConfiguration[$mainKey] = array();
-		}
+    protected function addLocalConfigurationValue($mainKey, $subKey, $propertyValue)
+    {
+        if (FALSE === isset($this->localConfiguration[$mainKey])) {
+            $this->localConfiguration[$mainKey] = array();
+        }
 
-		$this->localConfiguration[$mainKey][$subKey] = $propertyValue;
-	}
+        $this->localConfiguration[$mainKey][$subKey] = $propertyValue;
+    }
 
-	protected function writeLocalConfigurationArray() {
-		$configuration = new ConfigurationUtility($this->localConfiguration);
-		$phpCode = $configuration->getLocalConfigurationArray();
+    protected function writeLocalConfigurationArray()
+    {
+        $configuration = new ConfigurationUtility($this->localConfiguration);
+        $phpCode = $configuration->getLocalConfigurationArray();
 
-		$this->fileWriter->write($phpCode);
-		$this->fileWriter->close();
-	}
+        $this->fileWriter->write($phpCode);
+        $this->fileWriter->close();
+    }
 }
 ?>

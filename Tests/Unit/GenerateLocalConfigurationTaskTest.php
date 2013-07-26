@@ -1,97 +1,103 @@
 <?php
-class GenerateLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase {
+class GenerateLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase
+{
 
-	/**
-	 *
-	 * @var Project
-	 */
-	protected $project = NULL;
+    /**
+     *
+     * @var Project
+     */
+    protected $project = NULL;
 
-	/**
-	 *
-	 * @var GenerateLocalConfigurationTask
-	 */
-	protected $task = NULL;
+    /**
+     *
+     * @var GenerateLocalConfigurationTask
+     */
+    protected $task = NULL;
 
-	protected $file = NULL;
+    protected $file = NULL;
 
-	public function setUp() {
-		Phing::startup();
+    public function setUp()
+    {
+        Phing::startup();
 
-		$this->project = $this->getMockBuilder('Project')
-			->setMethods(NULL)
-			->getMock(NULL);
+        $this->project = $this->getMockBuilder('Project')
+            ->setMethods(NULL)
+            ->getMock(NULL);
 
-		$tempTargetFile = tempnam('/tmp', 'tmp');
+        $tempTargetFile = tempnam('/tmp', 'tmp');
 
-		$this->file = $this->getMockBuilder('PhingFile')
-			->setConstructorArgs(array($tempTargetFile))
-			->setMethods(NULL)
-			->getMock();
+        $this->file = $this->getMockBuilder('PhingFile')
+            ->setConstructorArgs(array($tempTargetFile))
+            ->setMethods(NULL)
+            ->getMock();
 
-		$propertyTask = $this->getMockBuilder('PropertyTask')
-			->setMethods(NULL)
-			->getMock();
+        $propertyTask = $this->getMockBuilder('PropertyTask')
+            ->setMethods(NULL)
+            ->getMock();
 
-		$propertyTask->setProject($this->project);
-		$propertyTask->setFile(dirname(__FILE__) . '/../Fixtures/LocalConfiguration.properties');
-		$propertyTask->setPrefix('LocalConfiguration.');
-		$propertyTask->main();
+        $propertyTask->setProject($this->project);
+        $propertyTask->setFile(dirname(__FILE__) . '/../Fixtures/LocalConfiguration.properties');
+        $propertyTask->setPrefix('LocalConfiguration.');
+        $propertyTask->main();
 
-		$this->task = new GenerateLocalConfigurationTask();
-		$this->task->setProject($this->project);
-	}
+        $this->task = new GenerateLocalConfigurationTask();
+        $this->task->setProject($this->project);
+    }
 
-	/**
-	 *
-	 * @test
-	 */
-	public function aPropertyTaskShouldBeUsedToLoadGeneratedLocalConfigurationProperties() {
-		$properties = $this->project->getProperties();
+    /**
+     *
+     * @test
+     */
+    public function aPropertyTaskShouldBeUsedToLoadGeneratedLocalConfigurationProperties()
+    {
+        $properties = $this->project->getProperties();
 
-		$this->assertNotEmpty($properties);
-	}
+        $this->assertNotEmpty($properties);
+    }
 
-	/**
-	 *
-	 * @test
-	 */
-	public function aLocalConfigurationPropertyShouldBeAvailableInTheProjectProperties() {
-		$db_name = $this->project->getProperty('LocalConfiguration.DB.database');
+    /**
+     *
+     * @test
+     */
+    public function aLocalConfigurationPropertyShouldBeAvailableInTheProjectProperties()
+    {
+        $db_name = $this->project->getProperty('LocalConfiguration.DB.database');
 
-		$this->assertEquals($db_name, 'mydb');
-	}
+        $this->assertEquals($db_name, 'mydb');
+    }
 
-	/**
-	 *
-	 * @test
-	 * @expectedException BuildException
-	 * @expectedExceptionMessage You must specify the file attribute!
-	 */
-	public function notSettingTheFileAttributeThrowsAnException() {
-		$this->task->main();
-	}
+    /**
+     *
+     * @test
+     * @expectedException BuildException
+     * @expectedExceptionMessage You must specify the file attribute!
+     */
+    public function notSettingTheFileAttributeThrowsAnException()
+    {
+        $this->task->main();
+    }
 
-	/**
-	 *
-	 * @test
-	 */
-	public function fileWriterIsUsedToWriteTheGeneratedPhpCode() {
-		$fileWriter = $this->getMockBuilder('FileWriter')
-			->setConstructorArgs(array($this->file))
-			->getMock();
+    /**
+     *
+     * @test
+     */
+    public function fileWriterIsUsedToWriteTheGeneratedPhpCode()
+    {
+        $fileWriter = $this->getMockBuilder('FileWriter')
+            ->setConstructorArgs(array($this->file))
+            ->getMock();
 
-		// SYS.textfile_ext value
-		$testString = 'txt,html,htm,css,tmpl,js,sql,xml,csv,php,php3,php4,php5,php6,phpsh,inc,phtml';
+        // SYS.textfile_ext value
+        $testString = 'txt,html,htm,css,tmpl,js,sql,xml,csv,php,php3,php4,php5,php6,phpsh,inc,phtml';
 
-		$fileWriter->expects($this->once())
-			->method('write')
-			->with($this->stringContains($testString));
+        $fileWriter->expects($this->once())
+            ->method('write')
+            ->with($this->stringContains($testString));
 
-		$this->task->setFile($this->file);
-		$this->task->addFileWriter($fileWriter);
+        $this->task->setFile($this->file);
+        $this->task->addFileWriter($fileWriter);
 
-		$this->task->main();
-	}
+        $this->task->main();
+    }
 }
 ?>

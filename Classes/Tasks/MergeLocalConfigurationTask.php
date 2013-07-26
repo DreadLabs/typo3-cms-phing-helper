@@ -41,117 +41,126 @@ include_once 'Utility/ArrayUtility.php';
  * override the settings from remote configuration file (which takes precedence).
  *
  * <mergelocalconfiguration localfile="file.php" remotefile="file2.php" includeemptyvalues="false" />
- * 
+ *
  * @author Thomas Juhnke <tommy@van-tomas.de>
  * @package Tasks
  */
-class MergeLocalConfigurationTask extends Task {
+class MergeLocalConfigurationTask extends Task
+{
 
-	/**
-	 *
-	 * @var PhingFile
-	 */
-	protected $localFile = NULL;
+    /**
+     *
+     * @var PhingFile
+     */
+    protected $localFile = NULL;
 
-	/**
-	 *
-	 * @var PhingFile
-	 */
-	protected $remoteFile = NULL;
+    /**
+     *
+     * @var PhingFile
+     */
+    protected $remoteFile = NULL;
 
-	/**
-	 *
-	 * @var boolean
-	 */
-	protected $includeEmptyValues = TRUE;
-	/**
-	 *
-	 * @var FileWriter
-	 */
-	protected $fileWriter = NULL;
+    /**
+     *
+     * @var boolean
+     */
+    protected $includeEmptyValues = TRUE;
+    /**
+     *
+     * @var FileWriter
+     */
+    protected $fileWriter = NULL;
 
-	/**
-	 *
-	 * @param PhingFile $localFile
-	 * @return void
-	 */
-	public function setLocalFile(PhingFile $localFile) {
-		$this->localFile = $localFile;
-	}
+    /**
+     *
+     * @param PhingFile $localFile
+     * @return void
+     */
+    public function setLocalFile(PhingFile $localFile)
+    {
+        $this->localFile = $localFile;
+    }
 
-	/**
-	 *
-	 * @return PhingFile
-	 */
-	public function getLocalFile() {
-		return $this->file;
-	}
+    /**
+     *
+     * @return PhingFile
+     */
+    public function getLocalFile()
+    {
+        return $this->file;
+    }
 
-	/**
-	 *
-	 * @param PhingFile $remoteFile
-	 * @return void
-	 */
-	public function setRemoteFile(PhingFile $remoteFile) {
-		$this->remoteFile = $remoteFile;
-	}
+    /**
+     *
+     * @param PhingFile $remoteFile
+     * @return void
+     */
+    public function setRemoteFile(PhingFile $remoteFile)
+    {
+        $this->remoteFile = $remoteFile;
+    }
 
-	/**
-	 *
-	 * @return PhingFile
-	 */
-	public function getRemoteFile() {
-		return $this->remoteFile;
-	}
+    /**
+     *
+     * @return PhingFile
+     */
+    public function getRemoteFile()
+    {
+        return $this->remoteFile;
+    }
 
-	/**
-	 *
-	 * @var boolean $includeEmptyValues
-	 * @return void
-	 */
-	public function setIncludeEmptyValues($includeEmptyValues) {
-		$this->includeEmptyValues = $includeEmptyValues;
-	}
+    /**
+     *
+     * @var boolean $includeEmptyValues
+     * @return void
+     */
+    public function setIncludeEmptyValues($includeEmptyValues)
+    {
+        $this->includeEmptyValues = $includeEmptyValues;
+    }
 
-	/**
-	 *
-	 * @return boolean
-	 */
-	public function getIncludeEmptyValues() {
-		return $this->includeEmptyValues;
-	}
+    /**
+     *
+     * @return boolean
+     */
+    public function getIncludeEmptyValues()
+    {
+        return $this->includeEmptyValues;
+    }
 
-	public function addFileWriter(FileWriter $fileWriter = NULL) {
-		if (NULL === $fileWriter) {
-			$fileWriter = new FileWriter($this->localFile);
-		}
+    public function addFileWriter(FileWriter $fileWriter = NULL)
+    {
+        if (NULL === $fileWriter) {
+            $fileWriter = new FileWriter($this->localFile);
+        }
 
-		$this->fileWriter = $fileWriter;
-	}
+        $this->fileWriter = $fileWriter;
+    }
 
-	public function main() {
-		if (NULL === $this->localFile) {
-			throw new BuildException('You must specify the locally generated file!');
-		}
+    public function main()
+    {
+        if (NULL === $this->localFile) {
+            throw new BuildException('You must specify the locally generated file!');
+        }
 
-		if (NULL === $this->remoteFile) {
-			throw new BuildException('You must specify the remote generated file!');
-		}
+        if (NULL === $this->remoteFile) {
+            throw new BuildException('You must specify the remote generated file!');
+        }
 
-		$remoteConfiguration = (array) include($this->remoteFile->getAbsolutePath());
-		$localConfiguration = (array) include($this->localFile->getAbsolutePath());
+        $remoteConfiguration = (array) include($this->remoteFile->getAbsolutePath());
+        $localConfiguration = (array) include($this->localFile->getAbsolutePath());
 
-		$mergedConfiguration = ArrayUtility::array_merge_recursive_overrule($remoteConfiguration, $localConfiguration, FALSE, $this->includeEmptyValues);
+        $mergedConfiguration = ArrayUtility::array_merge_recursive_overrule($remoteConfiguration, $localConfiguration, FALSE, $this->includeEmptyValues);
 
-		$configuration = new ConfigurationUtility($mergedConfiguration);
-		$phpCode = $configuration->getLocalConfigurationArray();
+        $configuration = new ConfigurationUtility($mergedConfiguration);
+        $phpCode = $configuration->getLocalConfigurationArray();
 
-		if (NULL === $this->fileWriter) {
-			$this->addFileWriter();
-		}
+        if (NULL === $this->fileWriter) {
+            $this->addFileWriter();
+        }
 
-		$this->fileWriter->write($phpCode);
-		$this->fileWriter->close();
-	}
+        $this->fileWriter->write($phpCode);
+        $this->fileWriter->close();
+    }
 }
 ?>
