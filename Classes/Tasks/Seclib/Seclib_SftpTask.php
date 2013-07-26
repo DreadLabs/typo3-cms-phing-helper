@@ -33,8 +33,6 @@ class Seclib_SftpTask extends Task {
 
 	protected $privkeyfilepassphrase = '';
 
-	protected $connection = null;
-
 	protected $sftp = null;
 
 	protected $count = 0;
@@ -263,22 +261,20 @@ class Seclib_SftpTask extends Task {
 		$methods = !empty($this->methods) ? $this->methods->toArray($p) : array();
 		// @todo: methods...
 
-		$this->connection = new Net_SSH2($this->host, $this->port);
+		$this->sftp = new Net_SFTP($this->host, $this->port);
 
 		$could_auth = null;
 		if ( $this->pubkeyfile ) {
 			$key = new Crypt_RSA();
 			$key->setPassword($this->privkeyfilepassphrase);
 			$key->loadKey($this->privkeyfile);
-			$could_auth = $this->connection->login($this->username, $key);
+			$could_auth = $this->sftp->login($this->username, $key);
 		} else {
-			$could_auth = $this->connection->login($this->username, $this->password);
+			$could_auth = $this->sftp->login($this->username, $this->password);
 		}
 		if (!$could_auth) {
-			throw new BuildException("Could not authenticate connection!");
+			throw new BuildException("Could not authenticate SFTP connection!");
 		}
-
-		$this->sftp = new Net_SFTP($this->host, $this->port);
 
 		if ($this->file != "") {
 			$this->copyFile($this->file, basename($this->file));
@@ -303,7 +299,7 @@ class Seclib_SftpTask extends Task {
 		$this->log("Copied " . $this->counter . " file(s) " . ($this->fetch ? "from" : "to") . " '" . $this->host . "'");
 
 		// explicitly close ssh connection
-		$this->connection->disconnect();
+// 		$this->connection->disconnect();
 	}
 
 	protected function copyFile($local, $remote) {
