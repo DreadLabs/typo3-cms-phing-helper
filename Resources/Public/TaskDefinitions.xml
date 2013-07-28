@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="typo3-cms-phing-helper.TaskDefinitions">
-
-	<taskdef
-		classname="Tasks.ExtensionVersionAvailableTask"
-		name="extensionversionavailable" />
+<project name="typo3-cms-phing-helper.TaskDefinitions">s
 
 	<taskdef
 		classname="Tasks.GenerateLocalConfigurationTask"
