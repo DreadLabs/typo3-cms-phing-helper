@@ -8,4 +8,8 @@
 	<taskdef
 		classname="Tasks.MergeLocalConfigurationTask"
 		name="mergelocalconfiguration" />
+
+	<taskde
+		classname="Tasks.GuessExtensionKeyTask"
+		name="guessextensionkey" />
 </project>
