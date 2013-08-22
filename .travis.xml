@@ -1,0 +1,11 @@
+language: php
+php:
+  - "5.3"
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libxml2-utils
+
+script:
+  - find . -path "./*.xml" -exec xmllint --noout {} \;
+  - find . -path "./src/*.php" -exec php -l {} \;
