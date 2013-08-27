@@ -11,6 +11,6 @@ before_script:
   - composer install --dev --prefer-source --no-interaction
 
 script:
-  - find . -path "./*.xml" -exec xmllint --noout {} \;
+  - find . -path "./Resources/*.xml" -exec xmllint --noout {} \;
   - find . -path "./Classes/*.php" -exec php -l {} \;
   - php vendor/bin/phpunit Tests/
