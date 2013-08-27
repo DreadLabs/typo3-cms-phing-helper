@@ -6,6 +6,11 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq libxml2-utils
 
+before_script:
+  - composer self-update
+  - composer install --dev --prefer-source --no-interaction
+
 script:
   - find . -path "./*.xml" -exec xmllint --noout {} \;
   - find . -path "./Classes/*.php" -exec php -l {} \;
+  - php vendor/bin/phpunit Tests/
