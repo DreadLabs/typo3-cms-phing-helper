@@ -17,8 +17,9 @@
  * <http://phing.info>.
  */
 
-include_once 'phing/filters/BaseParamFilterReader.php';
-include_once 'phing/filters/ChainableReader.php';
+require_once 'phing/filters/BaseParamFilterReader.php';
+require_once 'phing/filters/ChainableReader.php';
+require_once 'Utility/TYPO3/InstallTool.php';
 
 /**
  * Transforms the TYPO3 CMS DefaultConfiguration into a Phing property file
@@ -29,18 +30,6 @@ include_once 'phing/filters/ChainableReader.php';
  */
 class LocalConfigurationFilter extends BaseParamFilterReader implements ChainableReader
 {
-
-    /**
-     *
-     * @var string
-     */
-    protected $arrayKeyPattern = '/["\']([[:alnum:]_-]*)["\'][[:space:]]*=>(.*)/i';
-
-    /**
-     *
-     * @var string
-     */
-    protected $commentPattern = '/,[\\t\\s]*\\/\\/(.*)/i';
 
     /**
      * property file output line
@@ -89,6 +78,13 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
      */
     protected $typo3Version = NULL;
 
+    /**
+     * InstallTool utility
+     *
+     * @var InstallTool
+     */
+    protected $installTool = NULL;
+
     public function setCacheDir($dir)
     {
         $this->cacheDir = $dir;
@@ -123,6 +119,15 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
         return $this->typo3Version;
     }
 
+    public function addInstallTool(InstallTool $installTool = NULL)
+    {
+        if (NULL === $installTool) {
+            $installTool = new InstallTool();
+        }
+
+        $this->installTool = $installTool;
+    }
+
     /**
     * Creates a new LocalConfigurationFilter using the passed in
     * Reader for instantiation.
@@ -137,6 +142,7 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
         $newFilter->setProject($this->getProject());
         $newFilter->setCacheDir($this->getCacheDir());
         $newFilter->setTYPO3Version($this->getTYPO3Version());
+        $newFilter->addInstallTool($this->installTool);
         $newFilter->setInitialized(true);
 
         return $newFilter;
@@ -171,8 +177,7 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
 
         $this->setDefaultConfiguration($defaultConfiguration);
 
-        // first key is useless, empty configuration main keys (GFX, SYS, BE, FE...)
-        list(, $comments) = $this->getDefaultConfigArrayComments($defaultConfiguration);
+        $comments = $this->installTool->getDefaultConfigArrayComments($defaultConfiguration);
 
         $out = $this->createPropertyPathsFromCommentArray($comments);
 
@@ -201,6 +206,10 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
                 call_user_func(array($this, $setter), $param->getValue());
             }
         }
+
+        if (NULL === $this->installTool) {
+            $this->addInstallTool();
+        }
     }
 
     /**
@@ -224,54 +233,6 @@ class LocalConfigurationFilter extends BaseParamFilterReader implements Chainabl
         $this->defaultConfiguration = include($cacheFile);
 
         unlink($cacheFile);
-    }
-
-    /**
-     * Make an array of the comments in the t3lib/stddb/DefaultConfiguration.php file
-     *
-     * @note: this is a copy of \TYPO3\CMS\Install\Installer::getDefaultConfigArrayComments()
-     * @note: the regular expression patterns are outsourced into class members
-     * @note: $theComment assignment fails under strict environment (UndefinedIndex); isset() was added
-     *
-     * @param string $string The contents of the t3lib/stddb/DefaultConfiguration.php file
-     * @param array $mainArray
-     * @param array $commentArray
-     * @return array
-     * @todo Define visibility
-     */
-    public function getDefaultConfigArrayComments($string, $mainArray = array(), $commentArray = array())
-    {
-        $lines = explode(chr(10), $string);
-
-        $in = 0;
-        $mainKey = '';
-
-        foreach ($lines as $lc) {
-            $lc = trim($lc);
-            if ($in) {
-                if (!strcmp($lc, ');')) {
-                    $in = 0;
-                } else {
-                    if (preg_match($this->arrayKeyPattern, $lc, $reg)) {
-                        preg_match($this->commentPattern, $reg[2], $creg);
-
-                        $theComment = trim(isset($creg[1]) ? $creg[1] : '');
-
-                        if (substr(strtolower(trim($reg[2])), 0, 5) == 'array'
-                                && !strcmp($reg[1], strtoupper($reg[1]))) {
-                            $mainKey = trim($reg[1]);
-                            $mainArray[$mainKey] = $theComment;
-                        } elseif ($mainKey) {
-                            $commentArray[$mainKey][$reg[1]] = $theComment;
-                        }
-                    }
-                }
-            }
-            if (!strcmp($lc, 'return array(')) {
-                $in = 1;
-            }
-        }
-        return array($mainArray, $commentArray);
     }
 
     /**

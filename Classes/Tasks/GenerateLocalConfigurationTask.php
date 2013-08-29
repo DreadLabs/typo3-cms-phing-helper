@@ -18,8 +18,8 @@
  */
 
 require_once 'phing/Task.php';
-require_once 'Utility/ArrayUtility.php';
-require_once 'Utility/ConfigurationUtility.php';
+require_once 'Utility/TYPO3/ArrayUtility.php';
+require_once 'Utility/TYPO3/ConfigurationUtility.php';
 
 /**
  * Writes a the TYPO3 CMS LocalConfiguration.php file

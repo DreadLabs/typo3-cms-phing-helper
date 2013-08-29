@@ -48,7 +48,6 @@ class LocalConfigurationFilterTestCase extends PHPUnit_Framework_TestCase
      */
     public function defaultConfigurationArrayIsTransformedToPhingPropertyFormat()
     {
-        $this->filter->setInitialized(TRUE);
         $this->filter->setTYPO3Version('6.0.6');
         $output = $this->filter->read();
 
@@ -61,7 +60,6 @@ class LocalConfigurationFilterTestCase extends PHPUnit_Framework_TestCase
      */
     public function phingPropertyContainsTheDefaultConfigurationValue()
     {
-        $this->filter->setInitialized(TRUE);
         $this->filter->setTYPO3Version('6.0.6');
         $output = $this->filter->read();
 
@@ -86,7 +84,6 @@ class LocalConfigurationFilterTestCase extends PHPUnit_Framework_TestCase
     public function typo3VersionParameterIsAvailableInTheGeneratedPropertyFile()
     {
         $this->filter->setTYPO3Version('6.0.6');
-        $this->filter->setInitialized(TRUE);
         $output = $this->filter->read();
 
         $this->assertContains('HTTP.userAgent=TYPO3/6.0.6', $output);
