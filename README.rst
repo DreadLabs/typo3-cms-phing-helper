@@ -2,8 +2,8 @@
 typo3-cms-phing-helper
 ======================
 
-.. image:: https://travis-ci.org/DreadLabs/typo3-cms-phing-helpers.png?branch=master
-  :target: https://travis-ci.org/DreadLabs/typo3-cms-phing-helpers
+.. image:: https://travis-ci.org/DreadLabs/typo3-cms-phing-helper.png?branch=master
+  :target: https://travis-ci.org/DreadLabs/typo3-cms-phing-helper
 
 A package of Phing Tasks, Filters & Types for usage with TYPO3 CMS deployment.
 
