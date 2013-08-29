@@ -1,5 +1,4 @@
 <?php
-
 /*
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -18,9 +17,9 @@
  * <http://phing.info>.
  */
 
-include_once 'phing/Task.php';
-include_once 'Utility/ArrayUtility.php';
-include_once 'Utility/ConfigurationUtility.php';
+require_once 'phing/Task.php';
+require_once 'Utility/ArrayUtility.php';
+require_once 'Utility/ConfigurationUtility.php';
 
 /**
  * Writes a the TYPO3 CMS LocalConfiguration.php file
