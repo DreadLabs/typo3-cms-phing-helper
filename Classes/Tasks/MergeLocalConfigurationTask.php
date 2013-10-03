@@ -32,15 +32,15 @@ require_once 'Utility/TYPO3/ConfigurationUtility.php';
  *
  * 2. Call task:
  *
- * <mergelocalconfiguration localfile="path/to/typo3conf/LocalConfiguration.php" remotefile="path/to/remote/LocalConfiguration.php" />
+ * <mergelocalconfiguration base="path/to/typo3conf/LocalConfiguration.php" update="path/to/remote/LocalConfiguration.php" />
  *
  * 3. includeEmptyValues
  *
  * Per default the includeEmptyValues is set to TRUE. But you can set this
- * attribute to false and empty values from local configuration file will not
- * override the settings from remote configuration file (which takes precedence).
+ * attribute to false and empty values from base configuration file will not
+ * override the settings from an update configuration file (which takes precedence).
  *
- * <mergelocalconfiguration localfile="file.php" remotefile="file2.php" includeemptyvalues="false" />
+ * <mergelocalconfiguration base="file.php" update="file2.php" includeemptyvalues="false" />
  *
  * @author Thomas Juhnke <tommy@van-tomas.de>
  * @package Tasks
@@ -52,13 +52,13 @@ class MergeLocalConfigurationTask extends Task
      *
      * @var PhingFile
      */
-    protected $localFile = NULL;
+    protected $base = NULL;
 
     /**
      *
      * @var PhingFile
      */
-    protected $remoteFile = NULL;
+    protected $update = NULL;
 
     /**
      *
@@ -73,40 +73,40 @@ class MergeLocalConfigurationTask extends Task
 
     /**
      *
-     * @param PhingFile $localFile
+     * @param PhingFile $base
      * @return void
      */
-    public function setLocalFile(PhingFile $localFile)
+    public function setBase(PhingFile $base)
     {
-        $this->localFile = $localFile;
+        $this->base = $base;
     }
 
     /**
      *
      * @return PhingFile
      */
-    public function getLocalFile()
+    public function getBase()
     {
-        return $this->file;
+        return $this->base;
     }
 
     /**
      *
-     * @param PhingFile $remoteFile
+     * @param PhingFile $update
      * @return void
      */
-    public function setRemoteFile(PhingFile $remoteFile)
+    public function setUpdate(PhingFile $update)
     {
-        $this->remoteFile = $remoteFile;
+        $this->update = $update;
     }
 
     /**
      *
      * @return PhingFile
      */
-    public function getRemoteFile()
+    public function getUpdate()
     {
-        return $this->remoteFile;
+        return $this->update;
     }
 
     /**
@@ -131,7 +131,7 @@ class MergeLocalConfigurationTask extends Task
     public function addFileWriter(FileWriter $fileWriter = NULL)
     {
         if (NULL === $fileWriter) {
-            $fileWriter = new FileWriter($this->localFile);
+            $fileWriter = new FileWriter($this->base);
         }
 
         $this->fileWriter = $fileWriter;
@@ -139,18 +139,18 @@ class MergeLocalConfigurationTask extends Task
 
     public function main()
     {
-        if (NULL === $this->localFile) {
-            throw new BuildException('You must specify the locally generated file!');
+        if (NULL === $this->base) {
+            throw new BuildException('You must specify the base file!');
         }
 
-        if (NULL === $this->remoteFile) {
-            throw new BuildException('You must specify the remote generated file!');
+        if (NULL === $this->update) {
+            throw new BuildException('You must specify the update file!');
         }
 
-        $remoteConfiguration = (array) include($this->remoteFile->getAbsolutePath());
-        $localConfiguration = (array) include($this->localFile->getAbsolutePath());
+        $baseConfiguration = (array) include($this->base->getAbsolutePath());
+        $updateConfiguration = (array) include($this->update->getAbsolutePath());
 
-        $mergedConfiguration = ArrayUtility::array_merge_recursive_overrule($remoteConfiguration, $localConfiguration, FALSE, $this->includeEmptyValues);
+        $mergedConfiguration = ArrayUtility::array_merge_recursive_overrule($baseConfiguration, $updateConfiguration, FALSE, $this->includeEmptyValues);
 
         $configuration = new ConfigurationUtility($mergedConfiguration);
         $phpCode = $configuration->getLocalConfigurationArray();

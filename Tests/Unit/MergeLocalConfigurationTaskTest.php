@@ -34,13 +34,13 @@ class MergeLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase
      *
      * @var PhingFile
      */
-    protected $localFile = NULL;
+    protected $base = NULL;
 
     /**
      *
      * @var PhingFile
      */
-    protected $remoteFile = NULL;
+    protected $update = NULL;
 
     /**
      *
@@ -52,13 +52,13 @@ class MergeLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase
     {
         Phing::startup();
 
-        $this->localFile = $this->getMockBuilder('PhingFile')
-            ->setConstructorArgs(array(dirname(__FILE__) . '/../Fixtures/LocalLocalConfiguration.php'))
+        $this->base = $this->getMockBuilder('PhingFile')
+            ->setConstructorArgs(array(dirname(__FILE__) . '/../Fixtures/BaseLocalConfiguration.php'))
             ->setMethods(NULL)
             ->getMock();
 
-        $this->remoteFile = $this->getMockBuilder('PhingFile')
-            ->setConstructorArgs(array(dirname(__FILE__) . '/../Fixtures/RemoteLocalConfiguration.php'))
+        $this->update = $this->getMockBuilder('PhingFile')
+            ->setConstructorArgs(array(dirname(__FILE__) . '/../Fixtures/UpdateLocalConfiguration.php'))
             ->setMethods(NULL)
             ->getMock();
 
@@ -80,9 +80,9 @@ class MergeLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase
      *
      * @test
      * @expectedException BuildException
-     * @expectedExceptionMessage You must specify the locally generated file!
+     * @expectedExceptionMessage You must specify the base file!
      */
-    public function notSettingLocalFileThrowsAnException()
+    public function notSettingBaseFileThrowsAnException()
     {
         $this->task->main();
     }
@@ -91,11 +91,11 @@ class MergeLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase
      *
      * @test
      * @expectedException BuildException
-     * @expectedExceptionMessage You must specify the remote generated file!
+     * @expectedExceptionMessage You must specify the update file!
      */
-    public function notSettingRemoteFileThrowsAnException()
+    public function notSettingUpdateFileThrowsAnException()
     {
-        $this->task->setLocalFile($this->localFile);
+        $this->task->setBase($this->base);
 
         $this->task->main();
     }
@@ -108,22 +108,22 @@ class MergeLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase
     {
         // extension configuration array added in remote configuration
         $testString1 = 'extConf';
-        // InstallTool password is only set in remote configuration (is overriden as it is not set in local configuration)
-        $testString2 = '2ccbdfbea4716a57da75f4c8e8d651ac';
+        // InstallTool password is only set in update configuration (is overriden in base configuration as it is not set)
+        $testString2 = "'installToolPassword' => '',";
 
         $this->fileWriter->expects($this->once())
             ->method('write')
             ->with(
                 $this->logicalAnd(
-                    $this->stringContains($testString1),
+                    $this->stringContains($testString1, FALSE),
                     $this->logicalNot(
-                        $this->stringContains($testString2)
+                        $this->stringContains($testString2, FALSE)
                     )
                 )
             );
 
-        $this->task->setLocalFile($this->localFile);
-        $this->task->setRemoteFile($this->remoteFile);
+        $this->task->setBase($this->base);
+        $this->task->setUpdate($this->update);
         $this->task->addFileWriter($this->fileWriter);
 
         $this->task->main();
@@ -149,8 +149,8 @@ class MergeLocalConfigurationTaskTest extends PHPUnit_Framework_TestCase
                 )
             );
 
-        $this->task->setLocalFile($this->localFile);
-        $this->task->setRemoteFile($this->remoteFile);
+        $this->task->setBase($this->base);
+        $this->task->setUpdate($this->update);
         $this->task->setIncludeEmptyValues(FALSE);
         $this->task->addFileWriter($this->fileWriter);
 

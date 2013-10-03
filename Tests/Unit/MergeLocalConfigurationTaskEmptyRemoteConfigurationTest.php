@@ -21,7 +21,7 @@
  * Unit tests for MergeLocalConfigurationTask
  *
  */
-class MergeLocalConfigurationTaskEmptyRemoteConfigurationTest extends PHPUnit_Framework_TestCase
+class MergeLocalConfigurationTaskEmptyUpdateConfigurationTest extends PHPUnit_Framework_TestCase
 {
 
     /**
@@ -34,13 +34,13 @@ class MergeLocalConfigurationTaskEmptyRemoteConfigurationTest extends PHPUnit_Fr
      *
      * @var PhingFile
      */
-    protected $localFile = NULL;
+    protected $base = NULL;
 
     /**
      *
      * @var PhingFile
      */
-    protected $remoteFile = NULL;
+    protected $update = NULL;
 
     /**
      *
@@ -52,13 +52,13 @@ class MergeLocalConfigurationTaskEmptyRemoteConfigurationTest extends PHPUnit_Fr
     {
         Phing::startup();
 
-        $this->localFile = $this->getMockBuilder('PhingFile')
-            ->setConstructorArgs(array(dirname(__FILE__) . '/../Fixtures/LocalLocalConfiguration.php'))
+        $this->base = $this->getMockBuilder('PhingFile')
+            ->setConstructorArgs(array(dirname(__FILE__) . '/../Fixtures/BaseLocalConfiguration.php'))
             ->setMethods(NULL)
             ->getMock();
 
-        $this->remoteFile = $this->getMockBuilder('PhingFile')
-            ->setConstructorArgs(array(dirname(__FILE__) . '/../Fixtures/RemoteEmptyLocalConfiguration.php'))
+        $this->update = $this->getMockBuilder('PhingFile')
+            ->setConstructorArgs(array(dirname(__FILE__) . '/../Fixtures/UpdateEmptyLocalConfiguration.php'))
             ->setMethods(NULL)
             ->getMock();
 
@@ -80,7 +80,7 @@ class MergeLocalConfigurationTaskEmptyRemoteConfigurationTest extends PHPUnit_Fr
      *
      * @test
      */
-    public function mergingEmptyOrUnavailableRemoteLocalConfigurationShouldLeaveLocalConfigurationIntact()
+    public function mergingEmptyOrUnavailableUpdateLocalConfigurationShouldLeaveBaseConfigurationIntact()
     {
         $this->fileWriter
             ->expects($this->once())
@@ -94,8 +94,8 @@ class MergeLocalConfigurationTaskEmptyRemoteConfigurationTest extends PHPUnit_Fr
                 )
             );
 
-        $this->task->setLocalFile($this->localFile);
-        $this->task->setRemoteFile($this->remoteFile);
+        $this->task->setBase($this->base);
+        $this->task->setUpdate($this->update);
         $this->task->addFileWriter($this->fileWriter);
 
         $this->task->main();
